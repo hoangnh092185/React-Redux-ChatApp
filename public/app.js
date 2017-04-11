@@ -165,37 +165,31 @@ class ThreadTabs extends React.Component {
   }
 }
 
-class MessageInput extends React.Component {
-  handleSubmit = () => {
-    store.dispatch({
-      type: 'ADD_MESSAGE',
-      text: this.refs.messageInput.value,
-      threadId: this.props.threadId,
-    });
-    this.refs.messageInput.value = '';
-  };
+const TextFieldSubmit = (props) => {
+  let input;
 
-  render() {
-    return (
-      <div className='ui input'>
-        <input
-          ref='messageInput'
-          type='text'
-        >
-        </input>
-        <button
-          onClick={this.handleSubmit}
-          className='ui primary button'
-          type='submit'
-        >
-          Submit
-        </button>
-      </div>
-    );
-  }
+  return (
+    <div className='ui input'>
+      <input
+        ref={node => input = node}
+        type='text'
+      >
+      </input>
+      <button
+        onClick={() => {
+          props.onSubmit(input.value);
+          input.value = '';
+        }}
+        className='ui primary button'
+        type='submit'
+      >
+        Submit
+      </button>
+    </div>
+  );
 }
 
-class Thread extends React.Component {
+class ThreadDisplay extends React.Component {
   handleClick = (id) => {
     store.dispatch({
       type: 'DELETE_MESSAGE',
