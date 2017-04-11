@@ -188,35 +188,65 @@ const TextFieldSubmit = (props) => {
     </div>
   );
 }
+const MessageList = (props) => (
+  <div class='ui comments'>
+    {
+      props.messages.map((m, index) => (
+        <div
+          className='comment'
+          key={index}
+          onClick={() => props.onClick(m.id)}
+        >
+          <div className='text'>
+            {m.text}
+            <span className='metadata'>@{m.timestamp}</span>
+          </div>
+        </div>
+      ));
+    }
+  </div>
+);
+
+const Thread = (props) => (
+  <div className='ui center aligned basic segment'>
+    <MessageList
+      messages={props.thread.messages}
+      onClick={props.onMessageClick}
+    />
+    <TextFieldSubmit
+      onSubmit={props.onMessageSubmit}
+    />
+  </div>
+);
 
 class ThreadDisplay extends React.Component {
-  handleClick = (id) => {
-    store.dispatch({
-      type: 'DELETE_MESSAGE',
-      id: id,
-    });
-  };
+  componentDidMount(){
+    store.subscribe(() => this.forceUpdate());
+  }
 
   render() {
-    const messages = this.props.thread.messages.map((message, index) => (
-      <div
-        className='comment'
-        key={index}
-        onClick={() => this.handleClick(message.id)}
-      >
-        <div className='text'>
-          {message.text}
-          <span className='metadata'>@{message.timestamp}</span>
-        </div>
-      </div>
-    ));
+    const state = store.getState();
+    const activeThreadId = state.activeThreadId;
+    const activeThread = state.threads.find(
+      t => t.id === activeThreadId
+    );
     return (
-      <div className='ui center aligned basic segment'>
-        <div className='ui comments'>
-          {messages}
-        </div>
-        <MessageInput threadId={this.props.thread.id} />
-      </div>
+      <Thread
+        thread={activeThread}
+        onMessageClick={(id) => (
+          store.dispatch({
+            type: 'DELETE_MESSAGE',
+            id: id,
+          })
+        )}
+        onMessageSubmit={(text) => (
+          store.dispatch({
+            type: 'ADD_MESSAGE',
+            text: 'text',
+            threadId: activeThreadId,
+          })
+        )}
+      />
     );
   }
 }
