@@ -1,92 +1,105 @@
-/* eslint-disable no-undef */
-/* eslint-disable no-shadow */
-function reducer(state, action) {
+/* eslint-disable no-undef */ /* eslint-disable no-shadow */ /* eslint-disable react/prefer-stateless-function */
+
+function reducer(state = {}, action) {
   return {
     activeThreadId: activeThreadIdReducer(state.activeThreadId, action),
     threads: threadsReducer(state.threads, action),
   };
 }
 
-function activeThreadIdReducer(state, action) {
+function activeThreadIdReducer(state = '1-fca2', action) {
   if (action.type === 'OPEN_THREAD') {
     return action.id;
   } else {
     return state;
   }
 }
-function threadsReducer(state, action) {
-  if (action.type === 'ADD_MESSAGE') {
-    const newMessage={
-      text: action.text,
-      timestamp: Date.now(),
-      id: uuid.v4(),
-    };
-    const threadIndex = state.findIndex((t) => t.id === action.threadId);
-    const oldThread = state[threadIndex];
-    const newThread = {...oldThread, messages: oldThread.messages.concat(newMessage)};
-
-    return [
-        ...state.slice(0, threadIndex),
-        newThread,
-        ...state.slice(threadIndex + 1, state.lenght),
-      ];
-  } else if (action.type === 'DELETE_MESSAGE') {
-    const threadIndex = state.findIndex(
-      (t) => t.messages.find((m) =>(
-        m.id === action.id
-      ))
-    );
-    const oldThread = state[threadIndex];
-    const messageIndex = oldThread.messages.findIndex(
-      (m) => m.id === action.id
-    );
-    const messages = [
-      ...oldThread.messages.slice(0, messageIndex),
-      ...oldThread.messages.slice(messageIndex + 1, oldThread.messages.lenght),
-    ];
-    const newThread = {
-      ...oldThread,
-      messages: messages,
-    };
-
-    return [
-        ...state.slice(0, threadIndex),
-        newThread,
-        ...state.slice(threadIndex + 1, state.length),
-      ];
-  } else {
-    return state;
+function findThreadIndex(threads, action){
+  switch (action.type) {
+    case 'ADD_MESSAGE': {
+      return threads.findIndex(
+        (t) => t.id === action.threadId
+      );
+    }
+    case 'DELETE_MESSAGE': {
+      return threads.findIndex(
+        (t) => t.messages.find((m) => (
+          m.id === action.id
+        ))
+      );
+    }
   }
 }
 
-const initialState = {
-  activeThreadId: '1-fca2',
-  threads: [
+function threadsReducer(state =[
+  {
+    id: '1-fca2',
+    title: 'Buzz Aldrin',
+    messages: messagesReducer(undefined, {})
+  },
+  {
+    id: '2-be91',
+    title: 'Michael Collins',
+    messages: messagesReducer(undefined, {}),
+  },
+], action) {
+  switch (action.type) {
+    case 'ADD_MESSAGE':
+    case 'DELETE_MESSAGE':
     {
-      id: '1-fca2',
-      title: 'Buzz Aldrin',
-      messages: [
-        {
-          text: 'Twelve minutes to ignition.',
-          timestamp: Date.now(),
-          id: uuid.v4(),
-        },
-      ],
-    },
-    {
-      id: '2-be91',
-      title: 'Michael Collins',
-      messages: [],
-    },
-  ],
-  };
+      const threadIndex = findThreadIndex(state, action);
 
-const store = Redux.createStore(reducer, initialState);
+      const oldThread = state[threadIndex];
+      const newThread = {
+        ...oldThread,
+        messages: messagesReducer(oldThread.messages, action),
+      };
 
-class App extends React.Component {         // eslint-disable-line no-undef
+      return [
+        ...state.slice(0, threadIndex),
+        newThread,
+        ...state.slice(
+          threadIndex + 1, state.length
+        ),
+      ];
+    }
+    default: {
+      return state;
+    }
+  }
+}
+function messagesReducer(state = [], action) {
+  switch (action.type) {
+    case 'ADD_MESSAGE': {
+      const newMessage = {
+        text: action.text,
+        timestamp: Date.now(),
+        id: uuid.v4(),
+      };
+      return state.concat(newMessage);
+    }
+    case 'DELETE_MESSAGE': {
+      const messageIndex = state.findIndex(
+        (m) => m.id === action.id
+      );
+      return [
+        ...state.slice(0, messageIndex),
+        ...state.slice(messageIndex + 1, state.length),
+      ];
+    }
+    default: {
+      return state;
+    }
+  }
+}
+
+const store = Redux.createStore(reducer);
+
+class App extends React.Component {
   componentDidMount() {
     store.subscribe(() => this.forceUpdate());
   }
+
   render() {
     const state = store.getState();
     const activeThreadId = state.activeThreadId;
@@ -94,7 +107,7 @@ class App extends React.Component {         // eslint-disable-line no-undef
     const activeThread = threads.find((t) => t.id === activeThreadId);
 
     const tabs = threads.map(t => (
-      { // a "tab" object
+      {
         title: t.title,
         active: t.id === activeThreadId,
         id: t.id,
@@ -110,28 +123,27 @@ class App extends React.Component {         // eslint-disable-line no-undef
   }
 }
 
-class ThreadTabs extends React.Component {
-  constructor(props){
-    super(props);
+/* eslint-disable react/prefer-stateless-function */
 
-    this.handleClick = this.handleClick.bind(this);
-  }
-  handleClick (id) {
+class ThreadTabs extends React.Component {
+  handleClick = (id) => {
     store.dispatch({
       type: 'OPEN_THREAD',
       id: id,
     });
   };
-  render(){
+
+  render() {
     const tabs = this.props.tabs.map((tab, index) => (
       <div
         key={index}
         className={tab.active ? 'active item' : 'item'}
-        onClick={() => this.handleClick(tab.id)}>
+        onClick={() => this.handleClick(tab.id)}
+      >
         {tab.title}
       </div>
     ));
-    return(
+    return (
       <div className='ui top attached tabular menu'>
         {tabs}
       </div>
@@ -139,20 +151,16 @@ class ThreadTabs extends React.Component {
   }
 }
 
-class MessageInput extends React.Component {      // eslint-disable-line no-undef
-  constructor(props){
-    super(props);
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-  handleSubmit() {
+class MessageInput extends React.Component {
+  handleSubmit = () => {
     store.dispatch({
       type: 'ADD_MESSAGE',
       text: this.refs.messageInput.value,
       threadId: this.props.threadId,
     });
     this.refs.messageInput.value = '';
-  }
+  };
+
   render() {
     return (
       <div className='ui input'>
@@ -168,23 +176,19 @@ class MessageInput extends React.Component {      // eslint-disable-line no-unde
         >
           Submit
         </button>
-       </div>
+      </div>
     );
   }
 }
 
-class Thread extends React.Component{      // eslint-disable-line no-undef
-  constructor(props){
-    super(props);
-
-    this.handleClick = this.handleClick.bind(this);
-  }
-  handleClick(id) {
+class Thread extends React.Component {
+  handleClick = (id) => {
     store.dispatch({
       type: 'DELETE_MESSAGE',
       id: id,
     });
-  }
+  };
+
   render() {
     const messages = this.props.thread.messages.map((message, index) => (
       <div
@@ -203,13 +207,13 @@ class Thread extends React.Component{      // eslint-disable-line no-undef
         <div className='ui comments'>
           {messages}
         </div>
-        <MessageInput threadId={this.props.thread.id}/>
+        <MessageInput threadId={this.props.thread.id} />
       </div>
     );
   }
 }
 
-ReactDOM.render(      // eslint-disable-line no-undef
+ReactDOM.render(
   <App />,
   document.getElementById('content')
 );
