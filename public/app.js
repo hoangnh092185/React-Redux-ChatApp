@@ -1,11 +1,9 @@
 /* eslint-disable no-undef */ /* eslint-disable no-shadow */ /* eslint-disable react/prefer-stateless-function */
 
-function reducer(state = {}, action) {
-  return {
-    activeThreadId: activeThreadIdReducer(state.activeThreadId, action),
-    threads: threadsReducer(state.threads, action),
-  };
-}
+const reducer = Redux.combineReducers({
+  activeThreadId: activeThreadIdReducer,
+  threads: threadsReducer,
+});
 
 function activeThreadIdReducer(state = '1-fca2', action) {
   if (action.type === 'OPEN_THREAD') {
@@ -94,6 +92,7 @@ function messagesReducer(state = [], action) {
 }
 
 const store = Redux.createStore(reducer);
+
 
 class App extends React.Component {
   componentDidMount() {
