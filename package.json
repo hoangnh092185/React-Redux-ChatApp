@@ -1,9 +1,8 @@
 {
-  "name": "chat_simple",
+  "name": "chat_intermediate",
   "version": "1.0.0",
   "author": "fullstackreact.com",
   "scripts": {
-    "test": "./node_modules/.bin/babel-node public/app.js",
     "go": "npm run server",
     "start": "npm run server",
     "server": "live-server public --host=localhost --port=3000 --middleware=./disable-browser-cache.js"

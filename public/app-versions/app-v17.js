@@ -96,7 +96,7 @@ const store = Redux.createStore(reducer);
 
 const App = () => (
   <div className='ui segment'>
-    // `Thread` changed to `ThreadDisplay` below
+    {/* `Thread` changed to `ThreadDisplay` below */}
     <ThreadTabs />
     <ThreadDisplay />
   </div>
