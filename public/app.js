@@ -140,43 +140,6 @@ const mapDispatchToTabsProps = (dispatch) => (
     ),
   }
 );
-const mapStateToThreadProps = (state) => (
-  {
-    thread: state.threads.find(
-      t => t.id === state.activeThreadId
-    ),
-  }
-);
-const mapDispatchToThreadProps = (dispatch) => (
-  {
-    onMessageClick: (id) => (
-      dispatch({
-        type: 'DELETE_MESSAGE',
-        id: id,
-      })
-    ),
-    dispatch: dispatch,
-  }
-);
-const mergeThreadProps = (stateProps, dispatchProps) => (
-  {
-    ...stateProps,
-    ...dispatchProps,
-    onMessageSubmit: (text) => (
-      dispatchProps.dispatch({
-        type: 'ADD_MESSAGE',
-        text: text,
-        threadId: stateProps.thread.id,
-      })
-    ),
-  }
-);
-
-const ThreadDisplay = ReactRedux.connect(
-  mapStateToThreadProps,
-  mapDispatchToThreadProps,
-  mergeThreadProps,
-)(Thread);
 
 const ThreadTabs = ReactRedux.connect(
   mapStateToTabsProps,
@@ -236,6 +199,43 @@ const Thread = (props) => (
     />
   </div>
 );
+const mapStateToThreadProps = (state) => (
+  {
+    thread: state.threads.find(
+      t => t.id === state.activeThreadId
+    ),
+  }
+);
+const mapDispatchToThreadProps = (dispatch) => (
+  {
+    onMessageClick: (id) => (
+      dispatch({
+        type: 'DELETE_MESSAGE',
+        id: id,
+      })
+    ),
+    dispatch: dispatch,
+  }
+);
+const mergeThreadProps = (stateProps, dispatchProps) => (
+  {
+    ...stateProps,
+    ...dispatchProps,
+    onMessageSubmit: (text) => (
+      dispatchProps.dispatch({
+        type: 'ADD_MESSAGE',
+        text: text,
+        threadId: stateProps.thread.id,
+      })
+    ),
+  }
+);
+
+const ThreadDisplay = ReactRedux.connect(
+  mapStateToThreadProps,
+  mapDispatchToThreadProps,
+  mergeThreadProps
+)(Thread);
 
 ReactDOM.render(
   <ReactRedux.Provider store={store}>
