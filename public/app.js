@@ -116,32 +116,72 @@ const Tabs = (props) => (
     }
   </div>
 );
-class ThreadTabs extends React.Component {
-  componentDidMount() {
-    store.subscribe(() => this.forceUpdate());
-  }
-  render() {
-    const state = store.getState();
-    const tabs = state.threads.map(t => (
-      {
-        title: t.title,
-        active: t.id === state.activeThreadId,
+
+const mapStateToTabsProps = (state) => {
+  const tabs = state.threads.map(t => (
+    {
+      title: t.title,
+      active: t.id === state.activeThreadId,
+      id: t.id,
+    }
+  ));
+  return {
+    tabs,
+  };
+};
+
+const mapDispatchToTabsProps = (dispatch) => (
+  {
+    onClick: (id) => (
+      dispatch({
+        type: 'OPEN_THREAD',
         id: id,
-      }
-    ));
-    return (
-      <Tabs
-        tabs={tabs}
-        onClick={(id) => (
-          store.dispatch({
-            type: 'OPEN_THREAD',
-            id: id,
-          })
-        )}
-      />
-    );
+      })
+    ),
   }
-}
+);
+const mapStateToThreadProps = (state) => (
+  {
+    thread: state.threads.find(
+      t => t.id === state.activeThreadId
+    ),
+  }
+);
+const mapDispatchToThreadProps = (dispatch) => (
+  {
+    onMessageClick: (id) => (
+      dispatch({
+        type: 'DELETE_MESSAGE',
+        id: id,
+      })
+    ),
+    dispatch: dispatch,
+  }
+);
+const mergeThreadProps = (stateProps, dispatchProps) => (
+  {
+    ...stateProps,
+    ...dispatchProps,
+    onMessageSubmit: (text) => (
+      dispatchProps.dispatch({
+        type: 'ADD_MESSAGE',
+        text: text,
+        threadId: stateProps.thread.id,
+      })
+    ),
+  }
+);
+
+const ThreadDisplay = ReactRedux.connect(
+  mapStateToThreadProps,
+  mapDispatchToThreadProps,
+  mergeThreadProps,
+)(Thread);
+
+const ThreadTabs = ReactRedux.connect(
+  mapStateToTabsProps,
+  mapDispatchToTabsProps,
+)(Tabs);
 
 const TextFieldSubmit = (props) => {
   let input;
@@ -167,7 +207,7 @@ const TextFieldSubmit = (props) => {
   );
 }
 const MessageList = (props) => (
-  <div class='ui comments'>
+  <div className='ui comments'>
     {
       props.messages.map((m, index) => (
         <div
@@ -180,7 +220,7 @@ const MessageList = (props) => (
             <span className='metadata'>@{m.timestamp}</span>
           </div>
         </div>
-      ));
+      ))
     }
   </div>
 );
@@ -197,39 +237,9 @@ const Thread = (props) => (
   </div>
 );
 
-class ThreadDisplay extends React.Component {
-  componentDidMount(){
-    store.subscribe(() => this.forceUpdate());
-  }
-
-  render() {
-    const state = store.getState();
-    const activeThreadId = state.activeThreadId;
-    const activeThread = state.threads.find(
-      t => t.id === activeThreadId
-    );
-    return (
-      <Thread
-        thread={activeThread}
-        onMessageClick={(id) => (
-          store.dispatch({
-            type: 'DELETE_MESSAGE',
-            id: id,
-          })
-        )}
-        onMessageSubmit={(text) => (
-          store.dispatch({
-            type: 'ADD_MESSAGE',
-            text: 'text',
-            threadId: activeThreadId,
-          })
-        )}
-      />
-    );
-  }
-}
-
 ReactDOM.render(
-  <App />,
+  <ReactRedux.Provider store={store}>
+  <App />
+  </ReactRedux.Provider>,
   document.getElementById('content')
 );
